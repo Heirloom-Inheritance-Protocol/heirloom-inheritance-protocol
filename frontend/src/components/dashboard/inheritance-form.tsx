@@ -34,7 +34,7 @@ export function InheritanceForm({
   return (
     <form
       className={cn(
-        "flex w-full max-w-2xl flex-col gap-8 rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900",
+        "relative flex w-full max-w-2xl flex-col gap-8 overflow-hidden rounded-3xl bg-linear-to-br from-emerald-50 via-white to-emerald-100 p-8 shadow-lg shadow-emerald-200/50 transition-shadow before:pointer-events-none before:absolute before:-inset-1 before:-z-10 before:opacity-80 before:blur-3xl before:bg-[radial-grgit aadient(circle_at_top_left,rgba(16,185,129,0.35),transparent_55%)] before:transition-opacity hover:shadow-emerald-200/70 hover:shadow-xl dark:from-emerald-950/40 dark:via-neutral-950 dark:to-emerald-900/20 dark:shadow-emerald-950/40 dark:before:bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.45),transparent_60%)]",
         className,
       )}
     >
