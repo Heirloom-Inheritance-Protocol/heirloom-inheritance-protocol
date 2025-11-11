@@ -8,6 +8,19 @@ interface InheritanceFormProps {
   className?: string;
 }
 
+interface Asset {
+  successorWallet: string;
+  file: {
+    name: string;
+    size: number;
+    type: string;
+    lastModified: number;
+  };
+  tag: string;
+  ipfsHash: string;
+  ipfsUrl: string;
+}
+
 const TAG_TYPES = ["recipe", "handcraft"] as const;
 
 export function InheritanceForm({
@@ -16,6 +29,8 @@ export function InheritanceForm({
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [successorWallet, setSuccessorWallet] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0];
@@ -31,31 +46,55 @@ export function InheritanceForm({
 
     if (!selectedFile) return;
 
-    // Read file as ArrayBuffer (raw binary data)
-    const fileArrayBuffer = await selectedFile.arrayBuffer();
+    setUploading(true);
+    try {
+      // Upload file to IPFS
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
-    // Read file as Base64 string
-    const fileBase64 = await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(selectedFile);
-    });
+      const response = await fetch("/api/upload-ipfs", {
+        method: "POST",
+        body: formData,
+      });
 
-    const formData = {
-      successorWallet,
-      file: {
-        name: selectedFile.name,
-        size: selectedFile.size,
-        type: selectedFile.type,
-        lastModified: selectedFile.lastModified,
-      },
-      tag: selectedTag || null,
-    };
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
 
-    console.log("Form Data:", formData);
-    console.log("Actual File Object:", selectedFile);
-    console.log("File as ArrayBuffer:", fileArrayBuffer);
-    console.log("File as Base64:", fileBase64);
+      const data = await response.json();
+
+      // Create asset object with form data and IPFS info
+      const newAsset: Asset = {
+        successorWallet,
+        file: {
+          name: selectedFile.name,
+          size: selectedFile.size,
+          type: selectedFile.type,
+          lastModified: selectedFile.lastModified,
+        },
+        tag: selectedTag,
+        ipfsHash: data.hash,
+        ipfsUrl: data.url,
+      };
+
+      // Add to assets array
+      setAssets((prevAssets) => [...prevAssets, newAsset]);
+
+      console.log("Asset added successfully:", newAsset);
+      console.log("All assets:", [...assets, newAsset]);
+
+      // Reset form
+      setSuccessorWallet("");
+      setSelectedFile(null);
+      setSelectedTag("");
+
+      alert("Inheritance created successfully!");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("Error uploading file: " + (error as Error).message);
+    } finally {
+      setUploading(false);
+    }
   }
 
   const isFormValid =
@@ -154,11 +193,45 @@ export function InheritanceForm({
 
       <button
         type="submit"
-        disabled={!isFormValid}
+        disabled={!isFormValid || uploading}
         className="w-full rounded-full bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-neutral-900 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 dark:disabled:hover:bg-white"
       >
-        Create Inheritance
+        {uploading ? "Uploading to IPFS..." : "Create Inheritance"}
       </button>
+
+      {assets.length > 0 && (
+        <div className="mt-6 space-y-4">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+            Created Inheritances ({assets.length})
+          </h3>
+          <div className="space-y-3">
+            {assets.map((asset, index) => (
+              <div
+                key={index}
+                className="rounded-xl bg-white/50 p-4 shadow-sm dark:bg-white/5"
+              >
+                <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                  {asset.file.name}
+                </p>
+                <p className="text-xs text-neutral-600 dark:text-neutral-300">
+                  Successor: {asset.successorWallet}
+                </p>
+                <p className="text-xs text-neutral-600 dark:text-neutral-300">
+                  Tag: {asset.tag}
+                </p>
+                <a
+                  href={asset.ipfsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  View on IPFS →
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </form>
   );
 }
