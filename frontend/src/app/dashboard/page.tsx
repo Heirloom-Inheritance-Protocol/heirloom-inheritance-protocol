@@ -1,4 +1,9 @@
+"use client";
+
 import type { JSX } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 
 import { InheritanceForm } from "@/components/dashboard/inheritance-form";
 import { ReceivedInheritances } from "@/components/dashboard/received-inheritances";
@@ -6,6 +11,29 @@ import { FloatingNav } from "@/components/ui/floating-navbar";
 import { DashboardTabs } from "@/components/ui/dashboard-tabs";
 
 export default function DashboardPage(): JSX.Element {
+  const router = useRouter();
+  const { ready, authenticated } = usePrivy();
+
+  useEffect(() => {
+    if (ready && !authenticated) {
+      router.push("/");
+    }
+  }, [ready, authenticated, router]);
+
+  // Show loading state while checking authentication
+  if (!ready || !authenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-neutral-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900 dark:border-neutral-700 dark:border-t-white" />
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Verifying wallet connection...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <FloatingNav

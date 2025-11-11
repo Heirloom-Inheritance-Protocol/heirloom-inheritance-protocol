@@ -99,7 +99,7 @@ export default function Home() {
     <>
       <FloatingNav
         navItems={[
-          { name: "Home", link: "#" },
+          { name: "Home", link: "/" },
           { name: "About", link: "#about" },
           { name: "Contact", link: "#contact" },
         ]}

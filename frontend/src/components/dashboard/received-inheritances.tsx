@@ -136,7 +136,7 @@ export function ReceivedInheritances(): JSX.Element {
           <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
             {searchQuery
               ? "Try adjusting your search query"
-              : "You haven&apos;t created any inheritances yet. Go to the Inheritance tab to create one."}
+              : "You haven't created any inheritances yet. Go to the Inheritance tab to create one."}
           </p>
         </div>
       ) : (

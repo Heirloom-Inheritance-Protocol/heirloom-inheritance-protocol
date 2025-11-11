@@ -8,6 +8,7 @@ import {
   useScroll,
 } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { JSX, useState } from "react";
 import ConnectWallet from "./ConnectWallet";
 
@@ -24,6 +25,7 @@ export const FloatingNav = ({
 }) => {
   const { ready, authenticated, user, logout, login } = usePrivy();
   const { scrollYProgress } = useScroll();
+  const pathname = usePathname();
 
   const [visible, setVisible] = useState(false);
 
@@ -64,23 +66,32 @@ export const FloatingNav = ({
           </span>
         </div>
         <nav className="flex items-center gap-4">
-          {navItems.map((navItem, idx: number) => (
-            <Link
-              key={`link=${idx}`}
-              href={navItem.link}
-              className={cn(
-                "relative dark:text-neutral-50 items-center flex space-x-1 text-neutral-600 dark:hover:text-neutral-300 hover:text-neutral-500",
-              )}
-            >
-              <span className="block sm:hidden">{navItem.icon}</span>
-              <span className="hidden sm:block text-sm">{navItem.name}</span>
-            </Link>
-          ))}
+          {navItems.map((navItem, idx: number) => {
+            const isActive = pathname === navItem.link;
+            return (
+              <Link
+                key={`link=${idx}`}
+                href={navItem.link}
+                className={cn(
+                  "relative dark:text-neutral-50 items-center flex space-x-1 text-neutral-600 dark:hover:text-neutral-300 hover:text-neutral-500 pb-1 border-b-2 transition-colors",
+                  isActive
+                    ? "border-blue-500 dark:border-blue-400 text-neutral-900 dark:text-white"
+                    : "border-transparent",
+                )}
+              >
+                <span className="block sm:hidden">{navItem.icon}</span>
+                <span className="hidden sm:block text-sm">{navItem.name}</span>
+              </Link>
+            );
+          })}
           {authenticated && (
             <Link
               href={"/dashboard"}
               className={cn(
-                "relative dark:text-neutral-50 items-center flex space-x-1 text-neutral-600 dark:hover:text-neutral-300 hover:text-neutral-500",
+                "relative dark:text-neutral-50 items-center flex space-x-1 text-neutral-600 dark:hover:text-neutral-300 hover:text-neutral-500 pb-1 border-b-2 transition-colors",
+                pathname === "/dashboard"
+                  ? "border-blue-500 dark:border-blue-400 text-neutral-900 dark:text-white"
+                  : "border-transparent",
               )}
             >
               {/* <span className="block sm:hidden">{icon}</span> */}
