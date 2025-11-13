@@ -52,10 +52,7 @@ Build a **minimal product** that makes *who passed which secret to whom* verifia
 - **Storage (IPFS)**
     
     Stores **ciphertext** only; on-chain stores `cidHash = keccak256(cid)`.
-    
-- **Evidence / Tags (EAS, recommended)**
-    
-    Attestations record **what type of inheritance** and **who → who** as machine-readable claims (with optional privacy via commitments).
+
     
 
 ---
