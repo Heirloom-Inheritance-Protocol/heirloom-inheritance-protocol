@@ -5,6 +5,7 @@ import { usePrivy } from "@privy-io/react-auth";
 
 import { cn } from "@/lib/utils";
 import { SuccessModal } from "@/components/ui/success-modal";
+import { createInheritance } from "@/lib/services/heriloomProtocol";
 
 interface InheritanceFormProps {
   className?: string;
@@ -51,6 +52,9 @@ export function InheritanceForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadingStage, setUploadingStage] = useState<
+    "idle" | "ipfs" | "blockchain"
+  >("idle");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successAsset, setSuccessAsset] = useState<Asset | null>(null);
 
@@ -93,10 +97,13 @@ export function InheritanceForm({
     if (!selectedFile) return;
 
     setUploading(true);
+    setUploadingStage("ipfs");
     try {
       // Upload file to IPFS
       const formData = new FormData();
       formData.append("file", selectedFile);
+
+      console.log("formData", selectedFile);
 
       const response = await fetch("/api/upload-ipfs", {
         method: "POST",
@@ -108,6 +115,21 @@ export function InheritanceForm({
       }
 
       const data = await response.json();
+
+      console.log("File uploaded to IPFS:", data);
+
+      // Create inheritance on blockchain
+      setUploadingStage("blockchain");
+      console.log("Creating inheritance on blockchain...");
+      const inheritanceId = await createInheritance({
+        successor: successorWallet as `0x${string}`,
+        ipfsHash: data.hash,
+        tag: selectedTag,
+        fileName: selectedFile.name,
+        fileSize: BigInt(selectedFile.size),
+      });
+
+      console.log("Inheritance created with ID:", inheritanceId.toString());
 
       // Create asset object with form data and IPFS info
       const newAsset: Asset = {
@@ -138,10 +160,11 @@ export function InheritanceForm({
       setSelectedFile(null);
       setSelectedTag("");
     } catch (error) {
-      console.error("Error uploading file:", error);
-      alert("Error uploading file: " + (error as Error).message);
+      console.error("Error creating inheritance:", error);
+      alert("Error creating inheritance: " + (error as Error).message);
     } finally {
       setUploading(false);
+      setUploadingStage("idle");
     }
   }
 
@@ -265,7 +288,11 @@ export function InheritanceForm({
             disabled={!isFormValid || uploading}
             className="w-full rounded-full bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-neutral-900 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 dark:disabled:hover:bg-white cursor-pointer"
           >
-            {uploading ? "Uploading to IPFS..." : "Create Inheritance"}
+            {uploadingStage === "ipfs"
+              ? "Uploading to IPFS..."
+              : uploadingStage === "blockchain"
+              ? "Creating on Blockchain..."
+              : "Create Inheritance"}
           </button>
 
           {assets.length > 0 && (
