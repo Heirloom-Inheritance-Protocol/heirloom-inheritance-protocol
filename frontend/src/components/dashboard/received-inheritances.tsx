@@ -1,71 +1,96 @@
 "use client";
 
 import { JSX, useState, useEffect } from "react";
-
-interface Asset {
-  successorWallet: string;
-  file: {
-    name: string;
-    size: number;
-    type: string;
-    lastModified: number;
-  };
-  tag: string;
-  ipfsHash: string;
-  ipfsUrl: string;
-}
-
-const ASSETS_STORAGE_KEY = "heirloom_inheritance_assets";
+import { usePrivy } from "@privy-io/react-auth";
+import {
+  getOwnerInheritances,
+  InheritanceData,
+} from "@/lib/services/heriloomProtocol";
 
 export function ReceivedInheritances(): JSX.Element {
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const { user } = usePrivy();
+  const [inheritances, setInheritances] = useState<InheritanceData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load assets from localStorage on mount
+  // Fetch inheritances from blockchain
   useEffect(() => {
-    try {
-      const storedAssets = localStorage.getItem(ASSETS_STORAGE_KEY);
-      if (storedAssets) {
-        const parsedAssets = JSON.parse(storedAssets) as Asset[];
-        setAssets(parsedAssets);
+    async function fetchInheritances() {
+      if (!user?.wallet?.address) {
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error("Error loading assets from localStorage:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  // Show all assets from storage (these are the ones the current user created)
-  const receivedAssets = assets;
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getOwnerInheritances(
+          user.wallet.address as `0x${string}`,
+        );
+        setInheritances(data);
+      } catch (error) {
+        console.error("Error fetching inheritances:", error);
+        setError("Failed to fetch inheritances from blockchain");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchInheritances();
+  }, [user?.wallet?.address]);
+
+  // Show all inheritances
+  const receivedAssets = inheritances;
 
   // Filter by search query
-  const filteredAssets = receivedAssets.filter((asset) => {
+  const filteredAssets = receivedAssets.filter((inheritance) => {
     const query = searchQuery.toLowerCase();
     return (
-      asset.file.name.toLowerCase().includes(query) ||
-      asset.tag.toLowerCase().includes(query) ||
-      asset.successorWallet.toLowerCase().includes(query)
+      inheritance.fileName.toLowerCase().includes(query) ||
+      inheritance.tag.toLowerCase().includes(query) ||
+      inheritance.successor.toLowerCase().includes(query)
     );
   });
 
-  function formatDate(timestamp: number): string {
-    return new Date(timestamp).toISOString().split("T")[0];
+  function formatDate(timestamp: bigint): string {
+    return new Date(Number(timestamp) * 1000).toISOString().split("T")[0];
   }
 
-  function formatSize(bytes: number): string {
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  function formatSize(bytes: bigint): string {
+    return `${(Number(bytes) / 1024 / 1024).toFixed(1)} MB`;
   }
 
   function shortenAddress(address: string): string {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }
 
+  function getIpfsUrl(ipfsHash: string): string {
+    return `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-900 dark:border-neutral-700 dark:border-t-white" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-8 text-center dark:border-red-700/50 dark:bg-red-900/10">
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      </div>
+    );
+  }
+
+  if (!user?.wallet?.address) {
+    return (
+      <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-white/60 p-12 text-center backdrop-blur-sm dark:border-blue-700/50 dark:bg-white/5">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          Please connect your wallet to view your inheritances
+        </p>
       </div>
     );
   }
@@ -169,9 +194,9 @@ export function ReceivedInheritances(): JSX.Element {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200/30 dark:divide-neutral-700/30">
-                {filteredAssets.map((asset, index) => (
+                {filteredAssets.map((inheritance) => (
                   <tr
-                    key={index}
+                    key={inheritance.id.toString()}
                     className="bg-transparent transition hover:bg-white/40 dark:hover:bg-white/10"
                   >
                     <td className="px-4 py-5">
@@ -185,28 +210,28 @@ export function ReceivedInheritances(): JSX.Element {
                           <path d="M14 2v6h6" fill="white" />
                         </svg>
                         <span className="truncate text-sm font-normal text-neutral-900 dark:text-white">
-                          {asset.file.name}
+                          {inheritance.fileName}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-5">
                       <span className="font-mono text-sm text-neutral-700 dark:text-neutral-300">
-                        {shortenAddress(asset.successorWallet)}
+                        {shortenAddress(inheritance.successor)}
                       </span>
                     </td>
                     <td className="px-4 py-5">
                       <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                        {formatDate(asset.file.lastModified)}
+                        {formatDate(inheritance.timestamp)}
                       </span>
                     </td>
                     <td className="px-4 py-5">
                       <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                        {formatSize(asset.file.size)}
+                        {formatSize(inheritance.fileSize)}
                       </span>
                     </td>
                     <td className="px-4 py-5">
                       <div className="flex flex-wrap gap-1">
-                        {asset.tag.split(",").map((tag, tagIndex) => (
+                        {inheritance.tag.split(",").map((tag, tagIndex) => (
                           <span
                             key={tagIndex}
                             className="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
@@ -217,25 +242,62 @@ export function ReceivedInheritances(): JSX.Element {
                       </div>
                     </td>
                     <td className="px-4 py-5">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/20 dark:text-green-400 dark:ring-green-400/30">
-                        <svg
-                          className="h-3 w-3"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Available
-                      </span>
+                      {inheritance.isClaimed ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-400 dark:ring-orange-400/30">
+                          <svg
+                            className="h-3 w-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Claimed
+                        </span>
+                      ) : inheritance.isActive ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/20 dark:text-green-400 dark:ring-green-400/30">
+                          <svg
+                            className="h-3 w-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Available
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/20 dark:text-red-400 dark:ring-red-400/30">
+                          <svg
+                            className="h-3 w-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Revoked
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-5">
                       <div className="flex items-center gap-1.5">
                         <button
-                          onClick={() => window.open(asset.ipfsUrl, "_blank")}
+                          onClick={() =>
+                            window.open(
+                              getIpfsUrl(inheritance.ipfsHash),
+                              "_blank",
+                            )
+                          }
                           className="inline-flex items-center justify-center rounded-lg p-1.5 text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-700"
                           aria-label="Open in new tab"
                         >
@@ -254,7 +316,7 @@ export function ReceivedInheritances(): JSX.Element {
                           </svg>
                         </button>
                         <a
-                          href={asset.ipfsUrl}
+                          href={getIpfsUrl(inheritance.ipfsHash)}
                           download
                           target="_blank"
                           rel="noopener noreferrer"

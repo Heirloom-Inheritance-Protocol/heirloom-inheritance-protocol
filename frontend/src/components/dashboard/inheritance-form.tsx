@@ -5,7 +5,11 @@ import { usePrivy } from "@privy-io/react-auth";
 
 import { cn } from "@/lib/utils";
 import { SuccessModal } from "@/components/ui/success-modal";
-import { createInheritance } from "@/lib/services/heriloomProtocol";
+import {
+  createInheritance,
+  getOwnerInheritances,
+  InheritanceData,
+} from "@/lib/services/heriloomProtocol";
 
 interface InheritanceFormProps {
   className?: string;
@@ -41,8 +45,6 @@ const TAG_TYPES = [
   "investor",
 ] as const;
 
-const ASSETS_STORAGE_KEY = "heirloom_inheritance_assets";
-
 export function InheritanceForm({
   className,
 }: InheritanceFormProps): JSX.Element {
@@ -50,7 +52,7 @@ export function InheritanceForm({
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [successorWallet, setSuccessorWallet] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const [inheritances, setInheritances] = useState<InheritanceData[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadingStage, setUploadingStage] = useState<
     "idle" | "ipfs" | "blockchain"
@@ -58,29 +60,25 @@ export function InheritanceForm({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successAsset, setSuccessAsset] = useState<Asset | null>(null);
 
-  // Load assets from localStorage on mount
+  // Fetch inheritances from blockchain
   useEffect(() => {
-    try {
-      const storedAssets = localStorage.getItem(ASSETS_STORAGE_KEY);
-      if (storedAssets) {
-        const parsedAssets = JSON.parse(storedAssets) as Asset[];
-        setAssets(parsedAssets);
+    async function fetchInheritances() {
+      if (!user?.wallet?.address) {
+        return;
       }
-    } catch (error) {
-      console.error("Error loading assets from localStorage:", error);
-    }
-  }, []);
 
-  // Save assets to localStorage whenever they change
-  useEffect(() => {
-    if (assets.length > 0) {
       try {
-        localStorage.setItem(ASSETS_STORAGE_KEY, JSON.stringify(assets));
+        const data = await getOwnerInheritances(
+          user.wallet.address as `0x${string}`,
+        );
+        setInheritances(data);
       } catch (error) {
-        console.error("Error saving assets to localStorage:", error);
+        console.error("Error fetching inheritances:", error);
       }
     }
-  }, [assets]);
+
+    fetchInheritances();
+  }, [user?.wallet?.address]);
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0];
@@ -131,7 +129,15 @@ export function InheritanceForm({
 
       console.log("Inheritance created with ID:", inheritanceId.toString());
 
-      // Create asset object with form data and IPFS info
+      // Refresh inheritances from blockchain
+      if (user?.wallet?.address) {
+        const updatedInheritances = await getOwnerInheritances(
+          user.wallet.address as `0x${string}`,
+        );
+        setInheritances(updatedInheritances);
+      }
+
+      // Create asset object for success modal
       const newAsset: Asset = {
         successorWallet,
         file: {
@@ -144,12 +150,6 @@ export function InheritanceForm({
         ipfsHash: data.hash,
         ipfsUrl: data.url,
       };
-
-      // Add to assets array
-      setAssets((prevAssets) => [...prevAssets, newAsset]);
-
-      console.log("Asset added successfully:", newAsset);
-      console.log("All assets:", [...assets, newAsset]);
 
       // Show success modal
       setSuccessAsset(newAsset);
@@ -295,34 +295,57 @@ export function InheritanceForm({
               : "Create Inheritance"}
           </button>
 
-          {assets.length > 0 && (
+          {inheritances.length > 0 && (
             <div className="mt-6 space-y-4">
               <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Created Inheritances ({assets.length})
+                Created Inheritances ({inheritances.length})
               </h3>
               <div className="space-y-3">
-                {assets.map((asset, index) => (
+                {inheritances.map((inheritance) => (
                   <div
-                    key={index}
+                    key={inheritance.id.toString()}
                     className="rounded-xl bg-white/50 p-4 shadow-sm dark:bg-white/5"
                   >
                     <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                      {asset.file.name}
+                      {inheritance.fileName}
                     </p>
                     <p className="text-xs text-neutral-600 dark:text-neutral-300">
-                      Successor: {asset.successorWallet}
+                      Successor: {inheritance.successor}
                     </p>
                     <p className="text-xs text-neutral-600 dark:text-neutral-300">
-                      Tag: {asset.tag}
+                      Tag: {inheritance.tag}
                     </p>
-                    <a
-                      href={asset.ipfsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                      View on IPFS →
-                    </a>
+                    <p className="text-xs text-neutral-600 dark:text-neutral-300">
+                      Size:{" "}
+                      {(Number(inheritance.fileSize) / 1024 / 1024).toFixed(2)}{" "}
+                      MB
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
+                          inheritance.isClaimed
+                            ? "bg-orange-50 text-orange-700 ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-400 dark:ring-orange-400/30"
+                            : inheritance.isActive
+                            ? "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/20 dark:text-green-400 dark:ring-green-400/30"
+                            : "bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-900/20 dark:text-red-400 dark:ring-red-400/30",
+                        )}
+                      >
+                        {inheritance.isClaimed
+                          ? "Claimed"
+                          : inheritance.isActive
+                          ? "Available"
+                          : "Revoked"}
+                      </span>
+                      <a
+                        href={`https://gateway.pinata.cloud/ipfs/${inheritance.ipfsHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        View on IPFS →
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>

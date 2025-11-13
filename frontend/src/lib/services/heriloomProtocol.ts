@@ -11,6 +11,19 @@ interface CreateInheritanceParams {
   fileSize: bigint;
 }
 
+export interface InheritanceData {
+  id: bigint;
+  owner: string;
+  successor: string;
+  ipfsHash: string;
+  tag: string;
+  fileName: string;
+  fileSize: bigint;
+  timestamp: bigint;
+  isActive: boolean;
+  isClaimed: boolean;
+}
+
 /**
  * Creates a new inheritance on the blockchain
  * @returns The inheritance ID
@@ -78,4 +91,51 @@ export async function createInheritance({
 
   const args = decoded.args as unknown as { inheritanceId: bigint };
   return args.inheritanceId;
+}
+
+/**
+ * Fetches all inheritances owned by a specific address
+ * @param ownerAddress The address of the owner
+ * @returns Array of inheritance data, filtered to exclude deleted ones
+ */
+export async function getOwnerInheritances(
+  ownerAddress: `0x${string}`,
+): Promise<InheritanceData[]> {
+  // Get array of inheritance IDs for the owner
+  const inheritanceIds = (await publicClient.readContract({
+    address: CONTRACT_ADDRESS as `0x${string}`,
+    abi: CONTRACT_ABI,
+    functionName: "getOwnerInheritances",
+    args: [ownerAddress],
+  })) as bigint[];
+
+  // Fetch details for each inheritance
+  const inheritancePromises = inheritanceIds.map(async (id) => {
+    const data = (await publicClient.readContract({
+      address: CONTRACT_ADDRESS as `0x${string}`,
+      abi: CONTRACT_ABI,
+      functionName: "getInheritance",
+      args: [id],
+    })) as [string, string, string, string, string, bigint, bigint, boolean, boolean];
+
+    return {
+      id,
+      owner: data[0],
+      successor: data[1],
+      ipfsHash: data[2],
+      tag: data[3],
+      fileName: data[4],
+      fileSize: data[5],
+      timestamp: data[6],
+      isActive: data[7],
+      isClaimed: data[8],
+    };
+  });
+
+  const allInheritances = await Promise.all(inheritancePromises);
+
+  // Filter out deleted inheritances (ipfsHash === "0")
+  return allInheritances.filter(
+    (inheritance) => inheritance.ipfsHash !== "0" && inheritance.ipfsHash !== "",
+  );
 }
