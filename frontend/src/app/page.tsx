@@ -100,8 +100,8 @@ export default function Home() {
       <FloatingNav
         navItems={[
           { name: "Home", link: "/" },
-          { name: "About", link: "#about" },
-          { name: "Contact", link: "#contact" },
+          { name: "Inherit", link: "/inherit" },
+          { name: "Received/Vault", link: "/received-vault" },
         ]}
       />
       <div className="relative min-h-screen">
