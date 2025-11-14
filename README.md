@@ -56,6 +56,13 @@ Short concept: A tool that allows people who wish to preserve cultural assets or
 
 ---
 
+### Repository / MVP / DEMO
+
+- **Repository:** https://github.com/Heirloom-Inheritance-Protocol
+- **MVP page:** https://heirloom-inheritance-protocol.vercel.app/
+- **Slides:** https://docs.google.com/presentation/d/1HbvQ5WrT1ixoNJFvNQ_snX9PHyXFh6y4JEpv3stpHbs/edit?usp=sharing
+
+---
 # Team
 
 **Team/Individual Name:**
@@ -364,10 +371,10 @@ Security limitations:
 https://github.com/Heirloom-Inheritance-Protocol
 
 **Demo / Deployment Link**  
-https://heirloom-inheritance-protocol.vercel.app/dashboard
+https://heirloom-inheritance-protocol.vercel.app/
 
 **Slides / Presentation**  
-https://www.figma.com/make/rSGqrMpI7cr1QmmQGiirqD/Create-Presentation-Material
+https://docs.google.com/presentation/d/1HbvQ5WrT1ixoNJFvNQ_snX9PHyXFh6y4JEpv3stpHbs/edit?usp=sharing
 
 ---
 
@@ -491,8 +498,8 @@ Complete the MVP development and deploy all components.
 ### Repository / MVP / DEMO
 
 - **Repository:** https://github.com/Heirloom-Inheritance-Protocol
-- **MVP page:** https://heirloom-inheritance-protocol.vercel.app
-- **Slides:** https://www.figma.com/make/rSGqrMpI7cr1QmmQGiirqD/Create-Presentation-Material
+- **MVP page:** https://heirloom-inheritance-protocol.vercel.app/
+- **Slides:** https://docs.google.com/presentation/d/1HbvQ5WrT1ixoNJFvNQ_snX9PHyXFh6y4JEpv3stpHbs/edit?usp=sharing
 
 ---
 
