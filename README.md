@@ -225,6 +225,81 @@ Additional risks:
 
 ---
 
+# Core User Flow
+
+## 1. Creating an Inheritance (Originator)
+
+<img width="814" height="780" alt="image" src="https://github.com/user-attachments/assets/37d357ec-621d-46ea-9807-c7f92191c971" />
+
+
+**1-0. Connect Wallet**  
+Connect your wallet to the app.  
+Non-crypto users can also generate a wallet easily using just an email address.
+
+**1-1. Prepare the Knowledge Asset**  
+The originator prepares the secret or culturally valuable information they wish to pass down — such as a recipe, a craft technique, or any sensitive document — in **PDF format**.
+
+**1-2. Set the Successor Wallet in the "Inherit" tab**  
+At the **Successor Wallet** field in the Inherit section tab, enter the wallet address of the person who will inherit the information.
+
+**1-3. Upload the PDF**  
+Click **Upload PDF** and select the file you want to inherit.
+
+**1-4. Choose a Tag Type**  
+Select a relevant tag such as *Recipe*, *Cultural Heritage*, *Finance*, etc.  
+(These tags allow efficient querying and classification in the database.)
+
+**1-5. Create Inheritance**  
+Click **Create Inheritance**.  
+Your wallet will request a signature. Once signed, the file is **encrypted client-side** and safely uploaded to **IPFS**.
+
+**1-6. Access via Vaults**  
+Uploaded inheritance entries can always be accessed and searched under the **Vaults** tab.
+
+---
+
+## 2. Receiving an Inheritance (Successor)
+<img width="1063" height="894" alt="image" src="https://github.com/user-attachments/assets/8daa2466-e67e-41a6-a616-7ccb6ad166ad" />
+
+
+**2-0. Connect Wallet**  
+The chosen successor connects using the **same wallet address** registered by the originator.
+
+**2-1. View Received Metadata in the "Received / Vaults" tab**  
+Once connected, the successor can open the **Received / Vaults** section to view metadata for all inheritance entries sent to them.
+
+**2-2. Download & Decrypt**  
+Click **Download (DL)**.  
+The encrypted file is fetched and automatically decrypted locally, then saved safely to the successor’s device.
+
+---
+
+## 3. Verifying and Evaluating Inheritances in Graph View in the "Dashboard" tab
+
+![Uploading image.png…]()
+
+
+**3-1. Visual Lineage Graph**  
+All contributors in an inheritance chain — originators, successors, and cultural organizations curating heritage — can visually review each succession event.  
+The dashboard presents a **graph of parent–child inheritance relationships**, showing how knowledge has been passed across generations.  
+
+Additional insights include:
+- Automatic counting of total contributors in each inheritance chain  
+- Easy identification of branching cultural lineages  
+- High-level visibility into how cultural assets evolve
+
+Example external stakeholders who may access the graph view:  
+*Local governments, museums, cultural preservation NGOs, public goods organizations*
+
+**3-2. Evidence for Public Goods Funding and Access Control**  
+External organizations can use the verifiable on-chain proof of inheritance to:
+- Evaluate cultural preservation contributions  
+- Use inheritance lineage as **evidence** in public-goods or grant-funding processes  
+- Apply **gating criteria** (e.g., only contributors of a specific inheritance chain can access a program, benefit, or grant)
+
+This ensures that historical knowledge is preserved with integrity and that contributors receive recognition and opportunities aligned with their cultural work.
+
+
 # Encryption & Decryption Flow (MVP)
 
 ## 1. Owner (Originator)
