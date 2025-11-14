@@ -493,7 +493,7 @@ Complete the MVP development and deploy all components.
 ### Repository / MVP / DEMO
 
 - **Repository:** https://github.com/Heirloom-Inheritance-Protocol
-- **MVP page:** https://heirloom-inheritance-protocol.vercel.app/dashboard
+- **MVP page:** https://heirloom-inheritance-protocol.vercel.app
 - **Slides:** https://www.figma.com/make/rSGqrMpI7cr1QmmQGiirqD/Create-Presentation-Material
 
 ---
