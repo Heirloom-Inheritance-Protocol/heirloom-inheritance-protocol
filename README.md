@@ -276,7 +276,8 @@ The encrypted file is fetched and automatically decrypted locally, then saved sa
 
 ## 3. Verifying and Evaluating Inheritances in Graph View in the "Dashboard" tab
 
-![Uploading image.png…]()
+<img width="869" height="819" alt="image" src="https://github.com/user-attachments/assets/36022cca-c05a-4920-8a24-52a8b5cc2220" />
+
 
 
 **3-1. Visual Lineage Graph**  
