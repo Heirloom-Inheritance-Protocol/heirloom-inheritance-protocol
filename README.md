@@ -373,7 +373,7 @@ https://docs.google.com/presentation/d/1HbvQ5WrT1ixoNJFvNQ_snX9PHyXFh6y4JEpv3stp
 
 ---
 
-# Objectives
+# Objectives in Invisible Garden 2025
 
 By the end of ARG25, the following core objectives were achieved:
 
@@ -385,7 +385,7 @@ By the end of ARG25, the following core objectives were achieved:
 
 ---
 
-# Weekly Progress
+# Weekly Progress during Invisible Garden 2025
 
 ## Week 1 (ends Oct 31)
 
