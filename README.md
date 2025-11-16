@@ -360,14 +360,6 @@ Security limitations:
 
 ---
 
-# Contract Addresses
-
-- Contract: Inheritance
-- Address: (fill after deployment)
-- Network: Arbitrum Sepolia
-
----
-
 # Demo
 
 **Main Repository Link**  
