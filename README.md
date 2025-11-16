@@ -1,9 +1,3 @@
-# Heritage Inheritance Protocol
-
-_A tool for securely passing cultural assets or secret knowledge across generations._
-
----
-
 # Project Title
 
 **Heritage Inheritance Protocol**
